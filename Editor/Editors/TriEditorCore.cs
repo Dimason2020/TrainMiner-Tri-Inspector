@@ -4,6 +4,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+#if FLEXUS_SERIALIZATION
+using Flexus.Serialization;
+#endif
+
 namespace TriInspector.Editors
 {
     public class TriEditorCore
@@ -68,6 +72,13 @@ namespace TriInspector.Editors
 
             serializedObject.UpdateIfRequiredOrScript();
 
+#if FLEXUS_SERIALIZATION
+            if (_inspector.RepaintRequired && serializedObject.targetObject is ISerializable serializable)
+            {
+                serializable.SetDirty(true);
+            }
+#endif
+            
             _inspector.Update();
             _inspector.RunValidationIfRequired();
 

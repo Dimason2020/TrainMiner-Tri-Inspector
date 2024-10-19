@@ -21,6 +21,7 @@ namespace TriInspector.Elements
         private readonly bool _alwaysElementsExpanded;
         private readonly Color _oddElementColor;
         private readonly Color _eventElementColor;
+        private readonly Color _selectionElementColor;
 
         private float _lastContentWidth;
 
@@ -35,6 +36,7 @@ namespace TriInspector.Elements
             _alwaysElementsExpanded = settings?.AlwaysElementsExpanded ?? false;
             _oddElementColor = EditorGUIUtility.isProSkin ? new Color(0.25f, 0.25f, 0.25f, 1f) : new Color(0.8f, 0.8f, 0.8f, 1f);
             _eventElementColor = EditorGUIUtility.isProSkin ? new Color(0.2f, 0.2f, 0.2f, 1f) : new Color(0.75f, 0.75f, 0.75f, 1f);
+            _selectionElementColor = EditorGUIUtility.isProSkin ? new Color(0.243f, 0.49f, 0.905f, 0.5f) : new Color(0.243f, 0.49f, 0.905f, 0.3f);
             _reorderableListGui = new ReorderableList(null, _property.ArrayElementType)
             {
                 draggable = settings?.Draggable ?? true,
@@ -362,7 +364,14 @@ namespace TriInspector.Elements
         {
             if (_reorderableListGui.count > 0)
             {
-                EditorGUI.DrawRect(rect, index % 2 == 0 ? _oddElementColor : _eventElementColor);
+                if (_reorderableListGui.index != index || !isFocused)
+                {
+                    EditorGUI.DrawRect(rect, index % 2 == 0 ? _oddElementColor : _eventElementColor);
+                }
+                else
+                {
+                    EditorGUI.DrawRect(rect, _selectionElementColor);
+                }
             }
         }
 
