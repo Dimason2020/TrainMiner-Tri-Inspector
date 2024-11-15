@@ -3,16 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json;
+using Flexus.Serialization;
 using TriInspector;
 using TriInspector.Processors;
 using TriInspector.Utilities;
+using UnityEngine;
 
-[assembly: RegisterTriTypeProcessor(typeof(JsonFieldTriTypeProcessor), 0)]
+[assembly: RegisterTriTypeProcessor(typeof(FlexusSerializeTriFieldTypeProcessor), 0)]
 
 namespace TriInspector.Processors 
 {
-    public class JsonFieldTriTypeProcessor : TriTypeProcessor
+    public class FlexusSerializeTriFieldTypeProcessor : TriTypeProcessor
     {
         public override void ProcessType(Type type, List<TriPropertyDefinition> properties)
         {
@@ -26,7 +27,9 @@ namespace TriInspector.Processors
 
         private static bool IsSerialized(FieldInfo fieldInfo)
         {
-            return fieldInfo.GetCustomAttribute<JsonPropertyAttribute>(false) != null;
+            return fieldInfo.GetCustomAttribute<SerializeReference>() == null 
+                   && fieldInfo.GetCustomAttribute<SerializeField>() == null 
+                   && fieldInfo.GetCustomAttribute<SerializationIncludedAttribute>(false) != null;
         }
     }
 }

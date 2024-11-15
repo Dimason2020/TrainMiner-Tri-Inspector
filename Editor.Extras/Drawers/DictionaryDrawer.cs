@@ -313,6 +313,8 @@ namespace TriInspector.Drawers
                 _dictionary.Remove(_arrayElementType.GetProperty("Key").GetValue(_list[ind]));
                 
                 _list.RemoveAt(ind);
+                
+                _triProperty.PropertyTree.RequestRepaint();
             }
             
             private void ReorderCallback(ReorderableList reorderableList, int oldIndex, int newIndex)
@@ -468,6 +470,8 @@ namespace TriInspector.Drawers
                     
                     _keyInstance = default;
                     _valueInstance = default;
+                    
+                    _triProperty.PropertyTree.RequestRepaint();
                 }
 
                 GUI.enabled = true;
