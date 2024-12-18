@@ -61,8 +61,7 @@ namespace TriInspector.Drawers
                 var types = TriReflectionUtilities
                     .AllTypes
                     .Where(type => typeConstraintAttribute == null || typeConstraintAttribute.AssemblyType.IsAssignableFrom(type))
-                    .Where(type => (typeConstraintAttribute == null && !type.IsAbstract) || typeConstraintAttribute != null &&
-                        typeConstraintAttribute.AllowAbstract && type.IsAbstract)
+                    .Where(type => !type.IsAbstract || typeConstraintAttribute is {AllowAbstract: true})
                     .ToList();
 
                 var groupByNamespace = types.Count > 20;
