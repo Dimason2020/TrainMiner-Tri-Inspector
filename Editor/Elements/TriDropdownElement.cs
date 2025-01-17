@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace TriInspector.Elements
@@ -13,9 +14,6 @@ namespace TriInspector.Elements
 
         private object _currentValue;
         private string _currentText;
-
-        private bool _hasNextValue;
-        private object _nextValue;
 
         public TriDropdownElement(TriProperty property, Func<TriProperty, IEnumerable<ITriDropdownItem>> valuesGetter)
         {
@@ -30,16 +28,6 @@ namespace TriInspector.Elements
 
         public override void OnGUI(Rect position)
         {
-            if (_hasNextValue)
-            {
-                var nextValue = _nextValue;
-                _hasNextValue = false;
-                _nextValue = null;
-
-                _property.SetValue(nextValue);
-                GUI.changed = true;
-            }
-
             if (!_property.Comparer.Equals(_currentValue, _property.Value))
             {
                 _currentValue = _property.Value;
@@ -53,28 +41,69 @@ namespace TriInspector.Elements
 
             if (GUI.Button(position, _currentText, EditorStyles.popup))
             {
-                ShowDropdown(position);
+                var dropdown = new TriDropdown(_property, _valuesGetter, new AdvancedDropdownState());
+                
+                dropdown.Show(position);
+
+                Event.current.Use();
             }
         }
-
-        private void ShowDropdown(Rect position)
+        
+        private class TriDropdown : AdvancedDropdown 
         {
-            var items = _valuesGetter.Invoke(_property);
-            var menu = new GenericMenu();
-
-            foreach (var item in items)
+            private readonly TriProperty _property;
+            private readonly Func<TriProperty, IEnumerable<ITriDropdownItem>> _valuesGetter;
+            
+            public TriDropdown(TriProperty property, Func<TriProperty, IEnumerable<ITriDropdownItem>> valuesGetter, AdvancedDropdownState state) : base(state)
             {
-                var isOn = _property.Comparer.Equals(item.Value, _property.Value);
-                menu.AddItem(new GUIContent(item.Text), isOn, ChangeValue, item.Value);
+                _property = property;
+                _valuesGetter = valuesGetter;
+                
+                minimumSize = new Vector2(0, 175);
             }
 
-            menu.DropDown(position);
-
-            void ChangeValue(object v)
+            protected override AdvancedDropdownItem BuildRoot()
             {
-                _nextValue = v;
-                _hasNextValue = true;
-                _property.PropertyTree.RequestRepaint();
+                var root = new AdvancedDropdownItem(_property.ValueType?.Name);
+
+                var values = _valuesGetter.Invoke(_property);
+
+                foreach (var value in values)
+                {
+                    root.AddChild(new TriDropdownItem(value));
+                }
+
+                return root;
+            }
+            
+            protected override void ItemSelected(AdvancedDropdownItem item)
+            {
+                if (!(item is TriDropdownItem enumItem))
+                {
+                    return;
+                }
+
+                if (enumItem.Value == null)
+                {
+                    _property.SetValue(null);
+                }
+                else
+                {
+                    _property.SetValue(enumItem.Value);
+                    _property.PropertyTree.RequestRepaint();
+                    GUI.changed = true;
+                }
+            }
+            
+            private class TriDropdownItem : AdvancedDropdownItem
+            {
+                public object Value { get; }
+
+                public TriDropdownItem(ITriDropdownItem triDropdownItem, Texture2D preview = null) : base(triDropdownItem.Text)
+                {
+                    Value = triDropdownItem.Value;
+                    icon = preview;
+                }
             }
         }
     }
