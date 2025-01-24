@@ -15,6 +15,7 @@ namespace TriInspector.Elements
         private readonly bool _skipReferencePickerExtraLine;
 
         private Type _referenceType;
+        private TriElement _referenceElement;
 
         [Serializable]
         public struct Props
@@ -38,12 +39,10 @@ namespace TriInspector.Elements
 
             if (_props.inline || _property.IsExpanded)
             {
-                dirty |= GenerateChildren();
+                dirty |= CheckType();
             }
-            else
-            {
-                dirty |= ClearChildren();
-            }
+
+            dirty |= _referenceElement?.Update() ?? false;
 
             dirty |= base.Update();
 
@@ -56,7 +55,10 @@ namespace TriInspector.Elements
 
             if (_props.inline || _property.IsExpanded)
             {
-                height += base.GetHeight(width) + 10;
+                if (_referenceElement != null)
+                {
+                    height += _referenceElement.GetHeight(width) + 10;
+                }
             }
 
             return height;
@@ -125,6 +127,8 @@ namespace TriInspector.Elements
                 using (TriGuiHelper.PushLabelWidth(_props.labelWidth))
                 {
                     base.OnGUI(contentRect);
+                    
+                    _referenceElement?.OnGUI(contentRect);
                 }
             }
             else
@@ -158,19 +162,19 @@ namespace TriInspector.Elements
 
                     Event.current.Use();
                 }
-
+                
                 if (_property.IsExpanded)
                 {
                     using (var indentedRectScope = TriGuiHelper.PushIndentedRect(contentRect, 1))
                     using (TriGuiHelper.PushLabelWidth(_props.labelWidth))
                     {
-                        base.OnGUI(indentedRectScope.IndentedRect);
+                        _referenceElement?.OnGUI(indentedRectScope.IndentedRect);
                     }
                 }
             }
         }
 
-        private bool GenerateChildren()
+        private bool CheckType()
         {
             if (_property.ValueType == _referenceType)
             {
@@ -178,29 +182,17 @@ namespace TriInspector.Elements
             }
 
             _referenceType = _property.ValueType;
-
-            RemoveAllChildren();
-
-            ClearGroups();
-            DeclareGroups(_property.ValueType);
-
-            foreach (var childProperty in _property.ChildrenProperties)
+            
+            _referenceElement?.DetachInternal();
+            
+            _referenceElement = new TriReferenceInternalElement(this);
+            
+            foreach (var drawer in TriDrawersUtilities.CreateValueDrawersFor(_referenceType))
             {
-                AddProperty(childProperty);
+                _referenceElement = drawer.CreateElementInternal(_property, _referenceElement);
             }
-
-            return true;
-        }
-
-        private bool ClearChildren()
-        {
-            if (ChildrenCount == 0)
-            {
-                return false;
-            }
-
-            _referenceType = null;
-            RemoveAllChildren();
+            
+            _referenceElement.AttachInternal(); 
 
             return true;
         }
@@ -231,6 +223,62 @@ namespace TriInspector.Elements
 
             result = null;
             return false;
+        }
+        
+        private class TriReferenceInternalElement : TriPropertyCollectionBaseElement
+        {
+            private readonly TriReferenceElement _triReferenceElement;
+            
+            public TriReferenceInternalElement(TriReferenceElement triReferenceElement)
+            {
+                _triReferenceElement = triReferenceElement;
+            }
+            
+            public override bool Update()
+            {
+                var dirty = false;
+
+                if (_triReferenceElement._props.inline || _triReferenceElement._property.IsExpanded)
+                {
+                    dirty |= GenerateChildren();
+                }
+                else
+                {
+                    dirty |= ClearChildren();
+                }
+
+                dirty |= base.Update();
+
+                return dirty;
+            }
+            
+            private bool GenerateChildren()
+            {
+                DeclareGroups(_triReferenceElement._property.ValueType);
+
+                RemoveAllChildren();
+            
+                ClearGroups();
+            
+                foreach (var childProperty in _triReferenceElement._property.ChildrenProperties)
+                {
+                    AddProperty(childProperty);
+                }
+
+                return true;
+            }
+
+            private bool ClearChildren()
+            {
+                if (ChildrenCount == 0)
+                {
+                    return false;
+                }
+
+                RemoveAllChildren();
+
+                return true;
+            }
         }
     }
 }
