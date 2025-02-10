@@ -14,6 +14,7 @@ namespace TriInspector.Elements
         private ValueResolver<string> _headerResolver;
         [CanBeNull] private TriProperty _firstProperty;
         [CanBeNull] private TriProperty _toggleProperty;
+        [CanBeNull] private TriElement _toggleTriElement;
 
         private bool _expanded;
 
@@ -52,7 +53,8 @@ namespace TriInspector.Elements
                     if (property.ValueType == typeof(bool))
                     {
                         _toggleProperty = property;
-
+                        _toggleTriElement = element;
+                        
                         return;
                     }
                     
@@ -154,6 +156,20 @@ namespace TriInspector.Elements
             }
 
             base.DrawContent(position);
+        }
+
+        protected override void OnAttachToPanel()
+        {
+            _toggleTriElement?.AttachInternal();
+            
+            base.OnAttachToPanel();
+        }
+
+        protected override void OnDetachFromPanel()
+        {
+            _toggleTriElement?.DetachInternal();
+            
+            base.OnDetachFromPanel();
         }
 
         public enum TitleMode

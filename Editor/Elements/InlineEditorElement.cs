@@ -90,8 +90,7 @@ namespace TriInspector.Elements
                     InternalEditorUtilityProxy.SetIsInspectorExpanded(obj, true);
                 }
             }
-
-            if (_editor != null && shouldDrawEditor)
+            else if (_editor != null && shouldDrawEditor)
             {
                 GUILayout.BeginArea(_editorPosition);
                 GUILayout.BeginVertical();

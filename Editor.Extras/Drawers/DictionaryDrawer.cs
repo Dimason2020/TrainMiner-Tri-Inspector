@@ -58,7 +58,7 @@ namespace TriInspector.Drawers
                 _dictionaryType = triProperty.Value != null ? triProperty.Value.GetType() : triProperty.ValueType;
                 _arrayElementType = typeof(KeyValuePair<,>).MakeGenericType(_dictionaryType.GetGenericArguments()[0], 
                     _dictionaryType.GetGenericArguments()[1]);
-                _keyTriProperty = new TriProperty(triProperty.PropertyTree, null, new TriPropertyDefinition(null, null, 0, "Key", _arrayElementType.GenericTypeArguments[0],
+                _keyTriProperty = new TriProperty(triProperty.PropertyTree, triProperty.Parent, new TriPropertyDefinition(null, null, 0, "Key", _arrayElementType.GenericTypeArguments[0],
                     (self, index) => _keyInstance,
                     (self, index, value) =>
                     {
@@ -66,7 +66,7 @@ namespace TriInspector.Drawers
                         return _keyInstance;
                     },
                     null, false), null);
-                _valueTriProperty = new TriProperty(triProperty.PropertyTree, null, new TriPropertyDefinition(null, null, 1, "Value", _arrayElementType.GenericTypeArguments[1],
+                _valueTriProperty = new TriProperty(triProperty.PropertyTree, triProperty.Parent, new TriPropertyDefinition(null, null, 1, "Value", _arrayElementType.GenericTypeArguments[1],
                     (self, index) => _valueInstance,
                     (self, index, value) =>
                     {
