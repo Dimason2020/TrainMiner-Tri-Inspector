@@ -176,7 +176,7 @@ namespace TriInspector.Elements
 
         private bool CheckType()
         {
-            if (_property.ValueType == _referenceType)
+            if (_property.ValueType == null || _property.ValueType == _referenceType)
             {
                 return false;
             }
@@ -229,6 +229,8 @@ namespace TriInspector.Elements
         {
             private readonly TriReferenceElement _triReferenceElement;
             
+            private Type _referenceType;
+            
             public TriReferenceInternalElement(TriReferenceElement triReferenceElement)
             {
                 _triReferenceElement = triReferenceElement;
@@ -254,11 +256,18 @@ namespace TriInspector.Elements
             
             private bool GenerateChildren()
             {
-                DeclareGroups(_triReferenceElement._property.ValueType);
+                if (_triReferenceElement._property.ValueType == _referenceType)
+                {
+                    return false;
+                }
+
+                _referenceType = _triReferenceElement._property.ValueType;
 
                 RemoveAllChildren();
-            
+                
                 ClearGroups();
+                
+                DeclareGroups(_triReferenceElement._property.ValueType);
             
                 foreach (var childProperty in _triReferenceElement._property.ChildrenProperties)
                 {
@@ -274,6 +283,8 @@ namespace TriInspector.Elements
                 {
                     return false;
                 }
+                
+                _referenceType = null;
 
                 RemoveAllChildren();
 
