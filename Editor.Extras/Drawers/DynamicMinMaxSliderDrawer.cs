@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using TriInspector;
 using TriInspector.Drawers;
